@@ -6,7 +6,7 @@ OBJDUMP = ${CROSS_COMPILE}objdump
 
 .DEFAULT_GOAL := all
 all:
-	@${CC} ${CFLAGS} test.S -Ttext=0x00000000 -o test.elf
+	@${CC} ${CFLAGS} tests/test.S -Ttext=0x00000000 -o test.elf
 	@${OBJCOPY} -O binary test.elf test.bin
 
 .PHONY : code
@@ -19,4 +19,12 @@ hex: all
 
 .PHONY : clean
 clean:
-	rm -rf *.o *.bin *.elf
+	rm -rf *.o *.bin *.elf obj_dir wave.vcd
+
+
+VERILATOR = verilator
+VERILATOR_FLAGS = -Wall -Wno-fatal --cc --exe --build --trace
+
+.PHONY: sim
+sim:
+	${VERILATOR} ${VERILATOR_FLAGS} sim/testbench.cpp sim/sim_mem.cpp rtl/inst_fetch.v -Irtl
