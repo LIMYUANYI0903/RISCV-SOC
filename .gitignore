@@ -1,0 +1,13 @@
+# Verilator build output
+obj_dir/
+
+# RISC-V build output
+*.elf
+*.bin
+*.o
+
+# Simulation waveform
+*.vcd
+
+# Temporary files
+*~
