@@ -27,4 +27,4 @@ VERILATOR_FLAGS = -Wall -Wno-fatal --cc --exe --build --trace
 
 .PHONY: sim
 sim:
-	${VERILATOR} ${VERILATOR_FLAGS} sim/testbench.cpp sim/sim_mem.cpp rtl/inst_fetch.v -Irtl
+	${VERILATOR} ${VERILATOR_FLAGS} sim/testbench.cpp sim/sim_mem.cpp tests/test_top.v -Irtl

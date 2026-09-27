@@ -1,15 +1,15 @@
 #include <stdio.h>
 #include <string>
 #include <assert.h>
-#include "Vinst_fetch.h"
-#include "Vinst_fetch__Syms.h"
+#include "Vtest_top.h"
+#include "Vtest_top__Syms.h"
 #include "verilated_vcd_c.h"
 
 #define MAX_SIM_CYCLE 20
 vluint64_t main_time = 0; 
 
 using namespace std;
-void sim_mem_load_bin(Vinst_fetch_rom* rom, string filename);
+void sim_mem_load_bin(Vtest_top_rom* rom, string filename);
 
 
 double sc_time_stamp()
@@ -29,11 +29,14 @@ int main(int argc,char **argv)
 
     VerilatedVcdC* tfp = new VerilatedVcdC(); 
 
-    Vinst_fetch *top = new Vinst_fetch("top");
+    //Vinst_fetch *top = new Vinst_fetch("top");
+    Vtest_top *top = new Vtest_top("top");
+
     top->trace(tfp, 0);
     tfp->open("wave.vcd"); 
+    //sim_mem_load_bin(top->inst_fetch->rom0, string(argv[1]));
+    sim_mem_load_bin(top->test_top->rom0, string(argv[1]));
 
-    sim_mem_load_bin(top->inst_fetch->rom0, string(argv[1]));
 
     top->rst_i = 1;
     for (int i = 0 ; i < 5 ; i ++){
