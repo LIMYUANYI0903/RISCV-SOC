@@ -3,7 +3,12 @@
 module regfile(
     input wire clk_i,
     input wire rst_i,
-   
+
+    //from wb 
+    input wire[`RADDR_WIDTH-1:0] waddr_i,
+    input wire[`RDATA_WIDTH-1:0] wdata_i,
+    input wire we_i,
+
     //from id read
     input wire re1_i,//控制要不要寫，write後面會賦值
     input wire[`RADDR_WIDTH-1:0] raddr1_i,
@@ -15,14 +20,52 @@ module regfile(
     output reg[`RDATA_WIDTH-1:0] rdata2_o
 );
 
-    reg[`RDATA_WIDTH-1:0] regs[0:`RNUM-1];
+    reg[`RDATA_WIDTH-1:0] regs[0:`RNUM-1]; //32 register
     integer i;
     initial begin
         for(i=0; i<`RNUM; i=i+1)
             regs[i] = 0;
     end
 
-    //write to do later
+    //write
+    always @(posedge clk_i) begin
+        if(rst_i == 0) begin
+            if((we_i == `WRITE_ENABLE) && (waddr_i != `ZERO_REG)) begin
+                regs[waddr_i] <=wdata_i;
+            end
+        end
+    end
+
+
+    //read bypass for data hazard(RAW)
+    //read1
+    always @(*) begin
+        if(raddr1_i ==`ZERO_REG) begin
+            rdata1_o = `ZERO;
+        end else if (raddr1_i == waddr_i && we_i == `WRITE_ENABLE && re1_i == `READ_ENABLE) begin
+            rdata1_o = wdata_i;
+        end else if (re1_i == `READ_ENABLE) begin
+            rdata1_o = regs[raddr1_i];
+        end else begin
+            rdata1_o = `ZERO;
+        end
+    end
+
+
+    //read2
+    always @(*) begin
+        if(raddr2_i ==`ZERO_REG) begin
+            rdata2_o = `ZERO;
+        end else if (raddr2_i == waddr_i && we_i == `WRITE_ENABLE && re2_i == `READ_ENABLE) begin
+            rdata2_o = wdata_i;
+        end else if (re2_i == `READ_ENABLE) begin
+            rdata2_o = regs[raddr2_i];
+        end else begin
+            rdata2_o = `ZERO;
+        end
+    end
+
+
     //兩個addr分開做
     always @(*) begin 
         if(raddr1_i == `ZERO_REG) begin
@@ -43,4 +86,16 @@ module regfile(
             rdata2_o = `ZERO;
         end
     end
+
+    
+    task readRegister;
+        /*verilator public*/
+        input integer raddr;
+        output integer val;
+        begin
+            val = regs[raddr[4:0]];
+        end
+    endtask    
+
+
 endmodule

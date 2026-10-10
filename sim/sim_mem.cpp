@@ -42,3 +42,13 @@ void sim_mem_load_bin(Vtest_top_rom* rom, std::string fn)
         sim_mem_write(rom, bswap(i),4,(uint8_t*)buf+i);
     }
 }
+
+uint32_t sim_regs_read(Vtest_top_regfile* regs,uint32_t addr)
+{
+    uint32_t v;
+    regs->readRegister(addr, v);
+    //printf("read register\n");
+    return v;
+}
+
+

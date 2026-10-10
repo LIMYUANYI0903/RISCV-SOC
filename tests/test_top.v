@@ -22,6 +22,7 @@ wire[`RDATA_WIDTH-1:0] id_op1_o;
 wire[`RDATA_WIDTH-1:0] id_op2_o;
 wire id_reg_we_o;
 wire[`RADDR_WIDTH-1:0] id_reg_waddr_o;
+
 //id to regfile
 wire[`RADDR_WIDTH-1:0] id_reg1_addr_o;
 wire[`RADDR_WIDTH-1:0] id_reg2_addr_o;
@@ -38,6 +39,26 @@ wire[`RDATA_WIDTH-1:0] id_exe_op2_o;
 wire id_exe_reg_we_o;
 wire[`RADDR_WIDTH-1:0] id_exe_reg_waddr_o;
 wire[`DATA_WIDTH-1:0] id_exe_inst_o;
+
+//exe
+wire[`RADDR_WIDTH-1:0] exe_reg_waddr_o;
+wire exe_reg_we_o;
+wire[`RDATA_WIDTH-1:0] exe_reg_wdata_o;
+
+//exe_mem
+wire[`RADDR_WIDTH-1:0] exe_mem_reg_waddr_o;
+wire exe_mem_reg_we_o;
+wire[`RDATA_WIDTH-1:0] exe_mem_reg_wdata_o;
+
+//mem
+wire[`RADDR_WIDTH-1:0] mem_reg_waddr_o;
+wire mem_reg_we_o;
+wire[`RDATA_WIDTH-1:0] mem_reg_wdata_o;
+
+//mem_wb
+wire[`RADDR_WIDTH-1:0] mem_wb_reg_waddr_o;
+wire mem_wb_reg_we_o;
+wire[`RDATA_WIDTH-1:0] mem_wb_reg_wdata_o;
 
 pc_reg pc_reg0(
     .rst_i(rst_i),
@@ -98,6 +119,11 @@ id id0(
 regfile regfile0(
     .rst_i(rst_i), .clk_i(clk_i),
 
+    //from wb
+    .waddr_i(mem_wb_reg_waddr_o),
+    .we_i(mem_wb_reg_we_o),
+    .wdata_i(mem_wb_reg_wdata_o),
+
     //from id
     .re1_i(id_reg1_re_o),
     .raddr1_i(id_reg1_addr_o),
@@ -129,6 +155,65 @@ id_exe id_exe0(
     .inst_o(id_exe_inst_o)
 );
 
+//EXE
+exe exe0(
+    .rst_i(rst_i),
+
+    //from id_exe
+    .op1_i(id_exe_op1_o),
+    .op2_i(id_exe_op2_o),
+    .reg_we_i(id_exe_reg_we_o),
+    .reg_waddr_i(id_exe_reg_waddr_o),
+    .inst_i(id_exe_inst_o),
+    //to exe_mem
+    .reg_waddr_o(exe_reg_waddr_o),
+    .reg_we_o(exe_reg_we_o),
+    .reg_wdata_o(exe_reg_wdata_o)
+);
+
+//exe_mem
+exe_mem exe_mem0(
+    .rst_i(rst_i), .clk_i(clk_i),
+
+    //from exe
+    .reg_waddr_i(exe_reg_waddr_o),
+    .reg_we_i(exe_reg_we_o),
+    .reg_wdata_i(exe_reg_wdata_o),
+
+    //to mem
+    .reg_waddr_o(exe_mem_reg_waddr_o),
+    .reg_we_o(exe_mem_reg_we_o),
+    .reg_wdata_o(exe_mem_reg_wdata_o)
+);
+
+    //mem
+mem mem0(
+    .rst_i(rst_i),
+
+    //from exe_mem
+    .reg_waddr_i(exe_mem_reg_waddr_o),
+    .reg_we_i(exe_mem_reg_we_o),
+    .reg_wdata_i(exe_mem_reg_wdata_o),
+
+    //to mem_wb
+    .reg_waddr_o(mem_reg_waddr_o),
+    .reg_we_o(mem_reg_we_o),
+    .reg_wdata_o(mem_reg_wdata_o)
+);
+
+//mem_wb
+mem_wb mem_wb0(
+    .rst_i(rst_i), .clk_i(clk_i),
+    // from mem
+    .reg_waddr_i(mem_reg_waddr_o),
+    .reg_we_i(mem_reg_we_o),
+    .reg_wdata_i(mem_reg_wdata_o),
+
+    //to regfile
+    .reg_waddr_o(mem_wb_reg_waddr_o),
+    .reg_we_o(mem_wb_reg_we_o),
+    .reg_wdata_o(mem_wb_reg_wdata_o)
+);
 
 endmodule
     
