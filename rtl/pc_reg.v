@@ -4,7 +4,7 @@ module pc_reg(
     input wire clk_i,
     input wire rst_i,
     output reg[`ADDR_WIDTH-1:0] pc_o,
-    output reg ce_o
+    output reg ce_o //Chip Enable
 );
     // 設定ce_o
     always @(posedge clk_i) begin

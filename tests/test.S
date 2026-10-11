@@ -9,6 +9,13 @@ _start:
 ***/
 
 .org 0x0
-.global _start
+.globl _start
+
 _start:
-    ori x5, x3, -2
+    addi x1, x0, -8
+    addi x2, x0, 8
+
+    slli x3, x2, 2
+    srli x4, x2, 2
+    srai x5, x1, 2
+    srli x6, x1, 2

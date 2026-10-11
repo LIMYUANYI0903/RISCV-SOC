@@ -11,7 +11,7 @@ module id_type_i(
     output reg reg1_re_o,
     
     //decode result
-    output reg[`RDATA_WIDTH-1:0] op1_o,//first value
+    output reg[`RDATA_WIDTH-1:0] op1_o,//first value,operand1
     output reg[`RDATA_WIDTH-1:0] op2_o,//second value
     output reg reg_we_o,//write enable
     output reg[`RADDR_WIDTH-1:0] reg_waddr_o
@@ -34,7 +34,24 @@ module id_type_i(
         op2_o = `ZERO;
         
         case (funct3)
-            `INST_ORI: begin
+            `INST_ORI, `INST_ADDI, `INST_SLTI, `INST_SLTIU, `INST_XORI, `INST_ANDI: begin
+                reg_we_o = `WRITE_ENABLE;
+                reg_waddr_o = rd;
+                reg1_re_o = `READ_ENABLE;
+                reg1_raddr_o = rs1;
+                op1_o = reg1_rdata_i;
+                op2_o = {{20{inst_i[31]}}, inst_i[31:20]}; //12bit -> 32 bit
+            end 
+            `INST_SLLI: begin
+                reg_we_o = `WRITE_ENABLE;
+                reg_waddr_o = rd;
+                reg1_re_o = `READ_ENABLE;
+                reg1_raddr_o = rs1;
+                op1_o = reg1_rdata_i;
+                op2_o = {27'b0, inst_i[24:20]}; 
+            end
+            //SRLI & SRAI
+            `INST_SRLI: begin
                 reg_we_o = `WRITE_ENABLE;
                 reg_waddr_o = rd;
                 reg1_re_o = `READ_ENABLE;

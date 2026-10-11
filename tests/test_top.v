@@ -101,6 +101,16 @@ id id0(
     .reg1_rdata_i(reg1_data_o),
     .reg2_rdata_i(reg2_data_o),
 
+    //from exe
+    .exe_reg_waddr_i(exe_reg_waddr_o),
+    .exe_reg_wdata_i(exe_reg_wdata_o),
+    .exe_reg_we_i(exe_reg_we_o),
+
+    //from mem
+    .mem_reg_waddr_i(mem_reg_waddr_o),
+    .mem_reg_wdata_i(mem_reg_wdata_o),
+    .mem_reg_we_i(mem_reg_we_o),
+
     //to regfile
     .reg1_raddr_o(id_reg1_addr_o),
     .reg2_raddr_o(id_reg2_addr_o),

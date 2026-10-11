@@ -22,7 +22,20 @@ module id(
     output reg[`RDATA_WIDTH-1:0] op1_o,
     output reg[`RDATA_WIDTH-1:0] op2_o,
     output reg reg_we_o,
-    output reg[`RADDR_WIDTH-1:0] reg_waddr_o
+    output reg[`RADDR_WIDTH-1:0] reg_waddr_o,
+
+    //for data hazard
+    //from exe
+    input wire[`RADDR_WIDTH-1:0] exe_reg_waddr_i,
+    input wire[`RDATA_WIDTH-1:0] exe_reg_wdata_i,
+    input wire exe_reg_we_i,
+
+    //from mem
+    input wire[`RADDR_WIDTH-1:0] mem_reg_waddr_i,
+    input wire[`RDATA_WIDTH-1:0] mem_reg_wdata_i,
+    input wire mem_reg_we_i
+
+
 );
     reg[`RDATA_WIDTH-1:0] op1_o_final;
     reg[`RDATA_WIDTH-1:0] op2_o_final;
@@ -88,20 +101,40 @@ module id(
     
  	//determine op1_o
 	always @(*) begin
-		if (rst_i == 1) begin
-			op1_o <= `ZERO;
-		end else begin
-			op1_o <= op1_o_final;
-		end//if
+		if (reg1_re_o == `READ_ENABLE &&
+            exe_reg_we_i == `WRITE_ENABLE &&
+            exe_reg_waddr_i == reg1_raddr_o)
+            begin
+			    op1_o <= exe_reg_wdata_i;
+		    end 
+        else if(reg1_re_o == `READ_ENABLE &&
+                mem_reg_we_i == `WRITE_ENABLE &&
+                mem_reg_waddr_i == reg1_raddr_o)
+            begin
+			    op1_o <= mem_reg_wdata_i;
+            end
+        else begin
+                op1_o <= op1_o_final;
+		    end//if
 	end//always
 
 	//determine op2_o
 	always @(*) begin
-		if (rst_i == 1) begin
-			op2_o = `ZERO;
-        end else begin
-			op2_o = op2_o_final;
-		end//if
+		if (reg2_re_o == `READ_ENABLE &&
+            exe_reg_we_i == `WRITE_ENABLE &&
+            exe_reg_waddr_i == reg2_raddr_o)
+            begin
+			    op2_o <= exe_reg_wdata_i;
+		    end 
+        else if(reg2_re_o == `READ_ENABLE &&
+                mem_reg_we_i == `WRITE_ENABLE &&
+                mem_reg_waddr_i == reg2_raddr_o)
+            begin
+			    op2_o <= mem_reg_wdata_i;
+            end
+        else begin
+                op2_o <= op2_o_final;
+		    end//if
 	end//always
 
 

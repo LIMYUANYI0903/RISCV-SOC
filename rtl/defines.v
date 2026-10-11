@@ -17,5 +17,16 @@
 
 
 `define NOP 32'h00000013
-`define INST_TYPE_I     7'b0010011
-`define INST_ORI        3'b110
+
+//I TYPE
+`define INST_TYPE_I     7'b0010011  //opcode 
+`define INST_ADDI       3'b000      //funct3
+`define INST_SLTI       3'b010 
+`define INST_SLTIU      3'b011 
+`define INST_XORI       3'b100 
+`define INST_ORI        3'b110  //DONE
+`define INST_ANDI       3'b111 
+`define INST_SLLI       3'b001  //funct7=0000000
+`define INST_SRLI       3'b101  //funct7=0000000
+`define INST_SRAI       3'b101  //funct7=0100000
+
