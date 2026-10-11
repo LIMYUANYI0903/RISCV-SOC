@@ -12,10 +12,11 @@ _start:
 .globl _start
 
 _start:
-    addi x1, x0, -8
-    addi x2, x0, 8
+    addi x1, x0, -16
+    addi x2, x0, 2
 
-    slli x3, x2, 2
-    srli x4, x2, 2
-    srai x5, x1, 2
-    srli x6, x1, 2
+    sll  x3, x2, x2
+    srl  x4, x1, x2
+    sra  x5, x1, x2
+    slt  x6, x1, x2
+    sltu x7, x1, x2

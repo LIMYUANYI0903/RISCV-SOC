@@ -20,9 +20,20 @@ module exe(
     wire[2:0] funct3 = inst_i[14:12];
     wire[6:0] funct7 = inst_i[31:25];
 
+    //------------------R-TYPE------------------------------
+    wire [`RDATA_WIDTH-1:0] r_reg_wdata_o;
+    wire r_reg_we_o;
 
+    exe_type_r exe_type_r0(
+        .rst_i(rst_i),
+        .inst_i(inst_i),
+        .op1_i(op1_i),
+        .op2_i(op2_i),
+        .reg_wdata_o(r_reg_wdata_o),
+        .reg_we_o(r_reg_we_o)
+     );
 
-    //--TYPE_I ,對於比較的operation，先在這邊做
+    //-------------------TYPE_I ,對於比較的operation，先在這邊做
     wire[31:0] sr_shift;
     wire[31:0] sr_shift_mask;
     assign sr_shift = op1_i >> op2_i[4:0];
@@ -95,6 +106,11 @@ module exe(
                         end  
                     endcase   
                 end 
+                `INST_TYPE_R_M: begin
+                    reg_waddr_o = reg_waddr_i;
+                    reg_wdata_o = r_reg_wdata_o;
+                    reg_we_o = r_reg_we_o;
+                end
                 default: begin
                     reg_waddr_o = `ZERO_REG;
                     reg_we_o = `WRITE_DISABLE;
