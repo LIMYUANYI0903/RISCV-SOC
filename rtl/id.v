@@ -33,12 +33,20 @@ module id(
     //from mem
     input wire[`RADDR_WIDTH-1:0] mem_reg_waddr_i,
     input wire[`RDATA_WIDTH-1:0] mem_reg_wdata_i,
-    input wire mem_reg_we_i
+    input wire mem_reg_we_i,
+
+    //from id_exe(stall)
+    input wire pre_inst_is_load_i,
+    input wire[`RADDR_WIDTH-1:0] exe_rd_i,
+
+    //to ctrl
+    output reg stallreq_o
 );
 
     reg[`RDATA_WIDTH-1:0] op1_o_final;
     reg[`RDATA_WIDTH-1:0] op2_o_final;
     wire[6:0] opcode = inst_i[6:0];
+
 
     //-----------------I-TYPE--------------------------
     wire[`RADDR_WIDTH-1:0] i_reg1_raddr_o;
@@ -84,8 +92,28 @@ module id(
         .reg_waddr_o(r_reg_waddr_o)
      );
 
+    //--------------U-TYPE------------------------------
+    wire[4:0] rd = inst_i[11:7];
 
 
+    //---------------S/L--------------------------------
+    wire[4:0] rs1 = inst_i[19:15];
+    wire[4:0] rs2 = inst_i[24:20];
+    
+    //stall
+    wire is_load_hazard;
+    assign is_load_hazard = 
+        (pre_inst_is_load_i==1'b1 && 
+        (rs1 == exe_rd_i || rs2==exe_rd_i));
+    
+    always@(*)begin
+        if (is_load_hazard)
+            stallreq_o = 1'b1;
+        else
+            stallreq_o = 1'b0;
+    end
+
+    //for register
     always @(*) begin
         if (rst_i == 1) begin
             inst_o = `NOP;
@@ -128,6 +156,51 @@ module id(
                     op2_o_final = r_op2_o;
                     reg_we_o = r_reg_we_o;
                     reg_waddr_o = r_reg_waddr_o;
+                end
+                //--------下面兩個operation倒放好像沒差
+                `INST_TYPE_LUI: begin
+                    inst_o = inst_i;
+                    reg1_raddr_o = `ZERO_REG;
+                    reg2_raddr_o = `ZERO_REG;
+                    reg1_re_o = `READ_DISABLE;
+                    reg2_re_o = `READ_DISABLE;
+                    op1_o_final = {inst_i[31:12],{12{1'b0}}};
+                    op2_o_final = {32{1'b0}};
+                    reg_we_o = `WRITE_ENABLE;
+                    reg_waddr_o = rd;
+                end
+                `INST_TYPE_AUIPC: begin
+                    inst_o = inst_i;
+                    reg1_raddr_o = `ZERO_REG;
+                    reg2_raddr_o = `ZERO_REG;
+                    reg1_re_o = `READ_DISABLE;
+                    reg2_re_o = `READ_DISABLE;
+                    op1_o_final = inst_addr_i;
+                    op2_o_final = {inst_i[31:12],{12{1'b0}}};
+                    reg_we_o = `WRITE_ENABLE;
+                    reg_waddr_o = rd;
+                end
+                `INST_TYPE_S: begin
+                    inst_o = inst_i;
+                    reg1_raddr_o =  rs1;
+                    reg2_raddr_o =  rs2;
+                    reg1_re_o = `READ_ENABLE;
+                    reg2_re_o = `READ_ENABLE;
+                    op1_o_final = reg1_rdata_i;
+                    op2_o_final = reg2_rdata_i;
+                    reg_we_o = `WRITE_DISABLE;
+                    reg_waddr_o = `ZERO_REG;
+                end
+                `INST_TYPE_L:begin
+                    inst_o = inst_i;
+                    reg1_raddr_o =  rs1;
+                    reg2_raddr_o =  `ZERO_REG;
+                    reg1_re_o = `READ_ENABLE;
+                    reg2_re_o = `READ_DISABLE;
+                    op1_o_final = reg1_rdata_i;
+                    op2_o_final = `ZERO;
+                    reg_we_o = `WRITE_ENABLE;
+                    reg_waddr_o =  rd;
                 end
                 default:begin
                 end//default

@@ -60,13 +60,47 @@ wire[`RADDR_WIDTH-1:0] mem_wb_reg_waddr_o;
 wire mem_wb_reg_we_o;
 wire[`RDATA_WIDTH-1:0] mem_wb_reg_wdata_o;
 
+//EXE -> EXE/MEM_NOP
+// EXE -> EXE/MEM
+wire        exe_mem_we_o;
+wire [31:0] exe_mem_addr_o;
+wire [31:0] exe_mem_data_o;
+wire [3:0]  exe_mem_op_o;
+
+// EXE/MEM -> MEM
+wire        exe_mem_mem_we_o;
+wire [31:0] exe_mem_mem_addr_o;
+wire [31:0] exe_mem_mem_data_o;
+wire [3:0]  exe_mem_mem_op_o;
+
+//ram
+wire [31:0] ram_addr;
+wire [31:0] ram_wdata;
+wire [31:0] ram_rdata;
+wire ram_we;
+
+//stall
+wire id_exe_inst_is_load_o;
+wire[`RDATA_WIDTH-1:0] id_exe_rd_o;
+wire id_stallreq_o;
+wire [5:0]ctrl_stall_o;
+
+pipe_ctrl ctrl0(
+    .rst_i(rst_i),
+    //.stallreq_from_if_i(if_stallreq_o), 
+    .stallreq_from_id_i(id_stallreq_o), 
+    .stall_o(ctrl_stall_o)
+);
+
 pc_reg pc_reg0(
     .rst_i(rst_i),
     .clk_i(clk_i),
     //to if_id
     .pc_o(pc_wire),
     // to rom
-    .ce_o(ce_wire)
+    .ce_o(ce_wire),
+    //from ctrl
+    .stall_i(ctrl_stall_o)
 );
 
 rom rom0(
@@ -75,6 +109,7 @@ rom rom0(
     .ce_i(ce_wire),
     .inst_o(if_inst_o)
 );
+
 assign if_inst_addr_o = pc_wire;
 
 //IF/ID
@@ -85,7 +120,9 @@ if_id if_id0(
     .inst_i(if_inst_o),
     //to id
     .inst_addr_o(if_id_inst_addr_o),
-    .inst_o(if_id_inst_o)
+    .inst_o(if_id_inst_o),
+    //from ctrl
+    .stall_i(ctrl_stall_o)
 );
 
 
@@ -100,6 +137,13 @@ id id0(
     //from regfile
     .reg1_rdata_i(reg1_data_o),
     .reg2_rdata_i(reg2_data_o),
+    
+    //from id_exe    
+    .pre_inst_is_load_i(id_exe_inst_is_load_o),
+    .exe_rd_i(id_exe_rd_o),
+    
+    //to ctrl
+    .stallreq_o(id_stallreq_o),
 
     //from exe
     .exe_reg_waddr_i(exe_reg_waddr_o),
@@ -150,6 +194,13 @@ regfile regfile0(
 id_exe id_exe0(
     .rst_i(rst_i), .clk_i(clk_i),
 
+    //from ctrl
+    .stall_i(ctrl_stall_o),
+
+    //to id
+    .inst_is_load_o(id_exe_inst_is_load_o),
+    .rd_o(id_exe_rd_o),
+
     //from id
     .inst_i(id_inst_o),
     .op1_i(id_op1_o),
@@ -175,28 +226,47 @@ exe exe0(
     .reg_we_i(id_exe_reg_we_o),
     .reg_waddr_i(id_exe_reg_waddr_o),
     .inst_i(id_exe_inst_o),
+
     //to exe_mem
     .reg_waddr_o(exe_reg_waddr_o),
     .reg_we_o(exe_reg_we_o),
-    .reg_wdata_o(exe_reg_wdata_o)
+    .reg_wdata_o(exe_reg_wdata_o),
+
+    .mem_we_o(exe_mem_we_o),
+    .mem_addr_o(exe_mem_addr_o),
+    .mem_data_o(exe_mem_data_o),
+    .mem_op_o(exe_mem_op_o)
 );
 
 //exe_mem
 exe_mem exe_mem0(
     .rst_i(rst_i), .clk_i(clk_i),
 
+    //from ctrl
+    //.stall_i(ctrl_stall_o),
+
     //from exe
     .reg_waddr_i(exe_reg_waddr_o),
     .reg_we_i(exe_reg_we_o),
     .reg_wdata_i(exe_reg_wdata_o),
 
+    .mem_we_i(exe_mem_we_o),
+    .mem_addr_i(exe_mem_addr_o),
+    .mem_data_i(exe_mem_data_o),
+    .mem_op_i(exe_mem_op_o),
+
     //to mem
     .reg_waddr_o(exe_mem_reg_waddr_o),
     .reg_we_o(exe_mem_reg_we_o),
-    .reg_wdata_o(exe_mem_reg_wdata_o)
+    .reg_wdata_o(exe_mem_reg_wdata_o),
+
+    .mem_we_o(exe_mem_mem_we_o),
+    .mem_addr_o(exe_mem_mem_addr_o),
+    .mem_data_o(exe_mem_mem_data_o),
+    .mem_op_o(exe_mem_mem_op_o)
 );
 
-    //mem
+//mem
 mem mem0(
     .rst_i(rst_i),
 
@@ -205,15 +275,31 @@ mem mem0(
     .reg_we_i(exe_mem_reg_we_o),
     .reg_wdata_i(exe_mem_reg_wdata_o),
 
+    .mem_we_i(exe_mem_mem_we_o),
+    .mem_addr_i(exe_mem_mem_addr_o),
+    .mem_data_i(exe_mem_mem_data_o),
+    .mem_op_i(exe_mem_mem_op_o),
+
     //to mem_wb
     .reg_waddr_o(mem_reg_waddr_o),
     .reg_we_o(mem_reg_we_o),
-    .reg_wdata_o(mem_reg_wdata_o)
+    .reg_wdata_o(mem_reg_wdata_o),
+
+    //to ram,
+    .ram_addr_o(ram_addr),
+    .ram_data_o(ram_wdata),
+    .ram_w_request_o(ram_we),
+    .ram_data_i(ram_rdata)
 );
 
 //mem_wb
 mem_wb mem_wb0(
-    .rst_i(rst_i), .clk_i(clk_i),
+    .rst_i(rst_i), 
+    .clk_i(clk_i),
+
+    //from ctrl
+    //.stall_i(ctrl_stall_o),
+
     // from mem
     .reg_waddr_i(mem_reg_waddr_o),
     .reg_we_i(mem_reg_we_o),
@@ -224,6 +310,16 @@ mem_wb mem_wb0(
     .reg_we_o(mem_wb_reg_we_o),
     .reg_wdata_o(mem_wb_reg_wdata_o)
 );
+
+ram ram0(
+    .clk_i(clk_i),
+    .rst_i(rst_i),
+    .we_i(ram_we),
+    .addr_i(ram_addr),
+    .data_i(ram_wdata),
+    .data_o(ram_rdata)
+);
+
 
 endmodule
     

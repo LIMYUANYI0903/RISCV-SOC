@@ -1,22 +1,39 @@
-/***
-.org 0x0
+.text
 .global _start
-_start:
-    ori x5, x4, 2
-    ori x5, x4, 3
-    ori x5, x4, 4
-    ori x5, x4, 5
-***/
-
-.org 0x0
-.globl _start
 
 _start:
-    addi x1, x0, -16
-    addi x2, x0, 2
+    addi x10, x0, 100
 
-    sll  x3, x2, x2
-    srl  x4, x1, x2
-    sra  x5, x1, x2
-    slt  x6, x1, x2
-    sltu x7, x1, x2
+    nop
+    nop
+    nop
+    nop
+    nop
+
+    addi x5, x0, 42
+
+    nop
+    nop
+    nop
+    nop
+    nop
+
+    sw x5, 0(x10)
+
+    nop
+    nop
+    nop
+    nop
+    nop
+
+    lw x1, 0(x10)
+    addi x2, x1, 1
+    addi x3, x0, 10
+    addi x4, x0, 20
+
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop

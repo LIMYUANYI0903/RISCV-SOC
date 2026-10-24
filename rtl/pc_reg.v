@@ -4,7 +4,9 @@ module pc_reg(
     input wire clk_i,
     input wire rst_i,
     output reg[`ADDR_WIDTH-1:0] pc_o,
-    output reg ce_o //Chip Enable
+    output reg ce_o, //Chip Enable
+
+    input wire[5:0] stall_i
 );
     // 設定ce_o
     always @(posedge clk_i) begin
@@ -15,12 +17,15 @@ module pc_reg(
         end
     end
 
-    //設定pc_o
-    always @(posedge clk_i) begin
-        if(ce_o == 1'b0) begin
+    //stall
+    always @(posedge clk_i)  begin
+        if (ce_o == 1'b0) begin
             pc_o <= 32'h0;
+        end else if (stall_i[0]==`STOP) begin
+            pc_o <= pc_o;  //loop
         end else begin
             pc_o <= pc_o + 4;
         end
     end
+
 endmodule
