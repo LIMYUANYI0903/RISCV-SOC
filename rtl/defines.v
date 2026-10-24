@@ -78,3 +78,16 @@
 // Pipeline stall control
 `define STOP    1'b1
 `define NOSTOP  1'b0
+
+//J TYPE 
+`define INST_TYPE_JAL 7'b1101111
+`define INST_TYPE_JALR 7'b1100111
+
+//B TYPE 
+`define INST_TYPE_B 7'b1100011
+`define INST_BEQ 3'b000
+`define INST_BNE 3'b001 
+`define INST_BLT 3'b100
+`define INST_BGE 3'b001
+`define INST_BLTU 3'b110
+`define INST_BGEU 3'b111 

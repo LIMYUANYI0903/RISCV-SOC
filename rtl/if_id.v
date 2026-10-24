@@ -10,6 +10,10 @@ module if_id(
     //stall
     input wire[5:0] stall_i,
 
+    //from pipe_ctrl
+    input wire flush_jump_i,  
+    input wire[`ADDR_WIDTH-1:0] new_pc_i,
+
     output reg[`ADDR_WIDTH-1:0] inst_addr_o,
     output reg[`DATA_WIDTH-1:0] inst_o
 );
@@ -17,6 +21,9 @@ module if_id(
     //stall
     always @(posedge clk_i) begin
         if (rst_i == 1) begin
+            inst_addr_o <= 0;
+            inst_o <= `NOP;
+        end else if(flush_jump_i == 1'b1) begin
             inst_addr_o <= 0;
             inst_o <= `NOP;
         end else if (stall_i[1]==`STOP && stall_i[2]==`STOP) begin

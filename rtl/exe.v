@@ -9,6 +9,7 @@ module exe(
     input wire reg_we_i,
     input wire[`RADDR_WIDTH-1:0] reg_waddr_i,
     input wire[`DATA_WIDTH-1:0] inst_i,
+    input wire[`ADDR_WIDTH-1:0] inst_addr_i, //for j_b
 
     //to exe_mem
     output reg[`RADDR_WIDTH-1:0] reg_waddr_o,
@@ -18,7 +19,11 @@ module exe(
     output reg mem_we_o,
     output reg[`ADDR_WIDTH-1:0] mem_addr_o,
     output reg[`DATA_WIDTH-1:0] mem_data_o,
-    output reg[3:0] mem_op_o //LB,LH,LW,LBU, LHU, SB, SH, SW
+    output reg[3:0] mem_op_o, //LB,LH,LW,LBU, LHU, SB, SH, SW
+
+    //to pipe control
+    output reg[`ADDR_WIDTH-1:0] jump_addr_o,
+    output reg jump_enable_o
 );
 
     wire[6:0] opcode = inst_i[6:0];
@@ -71,6 +76,19 @@ module exe(
 
     );
 
+    //-------------JUMP--------------------------
+
+    wire[`ADDR_WIDTH-1:0] b_jump_addr_o;
+    wire b_jump_enable_o;
+    exe_type_b_j exe_type_b_j0(
+        .rst_i(rst_i),
+        .inst_i(inst_i),
+        .inst_addr_i(inst_addr_i),
+        .op1_i(op1_i),
+        .op2_i(op2_i),
+        .jump_addr_o(b_jump_addr_o),
+        .jump_enable_o(b_jump_enable_o)
+    );
 
     always @(*) begin 
         if(rst_i == 1) begin
@@ -81,6 +99,8 @@ module exe(
             mem_addr_o = `ZERO;
             mem_data_o = `ZERO;
             mem_op_o = `MEM_NOP;
+            jump_addr_o =  `ZERO;
+            jump_enable_o = 1'b0;
         end
         else begin
             reg_waddr_o = `ZERO_REG;
@@ -90,6 +110,8 @@ module exe(
             mem_addr_o = `ZERO;
             mem_data_o = `ZERO;
             mem_op_o   = `MEM_NOP;
+            jump_addr_o =  `ZERO;
+            jump_enable_o = 1'b0;
             case (opcode)
             //------------------------TYPE_I--------------------------------
                 `INST_TYPE_I: begin
@@ -158,6 +180,10 @@ module exe(
                     mem_addr_o = s_mem_addr_o;
                     mem_data_o = s_mem_data_o;
                     mem_op_o = s_mem_op_o;
+                end
+                `INST_TYPE_B: begin 
+                    jump_addr_o = b_jump_addr_o;
+                    jump_enable_o = b_jump_enable_o;
                 end
                 default: begin
                     reg_waddr_o = `ZERO_REG;
