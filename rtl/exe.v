@@ -181,9 +181,17 @@ module exe(
                     mem_data_o = s_mem_data_o;
                     mem_op_o = s_mem_op_o;
                 end
+            //----------------------TYPE_B_J-----------------------------  
                 `INST_TYPE_B: begin 
                     jump_addr_o = b_jump_addr_o;
                     jump_enable_o = b_jump_enable_o;
+                end
+                `INST_TYPE_JAL, `INST_TYPE_JALR: begin
+                    jump_addr_o = b_jump_addr_o;
+                    jump_enable_o = b_jump_enable_o;
+                    reg_waddr_o = reg_waddr_i;
+                    reg_wdata_o = inst_addr_i+4;
+                    reg_we_o = `WRITE_ENABLE;
                 end
                 default: begin
                     reg_waddr_o = `ZERO_REG;

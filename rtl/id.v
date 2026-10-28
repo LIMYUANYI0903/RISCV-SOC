@@ -126,7 +126,7 @@ module id(
             op1_o_final = `ZERO;
             op2_o_final = `ZERO;
         end else begin
-            inst_o = `NOP;
+            inst_o = inst_i;
             reg1_raddr_o = `ZERO_REG;
             reg2_raddr_o = `ZERO_REG;
             reg1_re_o = `READ_DISABLE;
@@ -138,7 +138,6 @@ module id(
             case (opcode)
                 //type_i 只要讀一個reg
                 `INST_TYPE_I:begin
-                    inst_o = inst_i;
                     reg1_raddr_o = i_reg1_raddr_o;
                     reg1_re_o = i_reg1_re_o;
                     op1_o_final = i_op1_o;
@@ -147,7 +146,6 @@ module id(
                     reg_waddr_o = i_reg_waddr_o;
                 end
                 `INST_TYPE_R_M: begin
-                    inst_o = inst_i;
                     reg1_raddr_o = r_reg1_raddr_o;
                     reg2_raddr_o = r_reg2_raddr_o;
                     reg1_re_o = r_reg1_re_o;
@@ -159,7 +157,6 @@ module id(
                 end
                 //--------下面兩個operation倒放好像沒差
                 `INST_TYPE_LUI: begin
-                    inst_o = inst_i;
                     reg1_raddr_o = `ZERO_REG;
                     reg2_raddr_o = `ZERO_REG;
                     reg1_re_o = `READ_DISABLE;
@@ -170,7 +167,6 @@ module id(
                     reg_waddr_o = rd;
                 end
                 `INST_TYPE_AUIPC: begin
-                    inst_o = inst_i;
                     reg1_raddr_o = `ZERO_REG;
                     reg2_raddr_o = `ZERO_REG;
                     reg1_re_o = `READ_DISABLE;
@@ -181,7 +177,6 @@ module id(
                     reg_waddr_o = rd;
                 end
                 `INST_TYPE_S: begin
-                    inst_o = inst_i;
                     reg1_raddr_o =  rs1;
                     reg2_raddr_o =  rs2;
                     reg1_re_o = `READ_ENABLE;
@@ -192,7 +187,6 @@ module id(
                     reg_waddr_o = `ZERO_REG;
                 end
                 `INST_TYPE_L:begin
-                    inst_o = inst_i;
                     reg1_raddr_o =  rs1;
                     reg2_raddr_o =  `ZERO_REG;
                     reg1_re_o = `READ_ENABLE;
@@ -203,7 +197,6 @@ module id(
                     reg_waddr_o =  rd;
                 end
                 `INST_TYPE_B: begin
-                    inst_o = inst_i;
                     reg1_raddr_o =  rs1;
                     reg2_raddr_o =  rs2;
                     reg1_re_o = `READ_ENABLE;
@@ -211,6 +204,20 @@ module id(
                     op1_o_final = reg1_rdata_i;
                     op2_o_final = reg2_rdata_i;
                     reg_we_o = `WRITE_DISABLE;
+                end
+                `INST_TYPE_JAL: begin
+                    reg1_raddr_o =  rs1;
+                    reg2_raddr_o =  rs2;
+                    reg_we_o = `WRITE_ENABLE;
+                    reg_waddr_o = rd;
+                end
+                `INST_TYPE_JALR: begin
+                    reg1_raddr_o =  rs1;
+                    reg2_raddr_o =  rs2;
+                    reg1_re_o = `READ_ENABLE;
+                    op1_o_final = reg1_rdata_i;
+                    reg_we_o = `WRITE_ENABLE;
+                    reg_waddr_o = rd;
                 end
                 default:begin
                 end//default
