@@ -91,3 +91,6 @@
 `define INST_BGE 3'b101
 `define INST_BLTU 3'b110
 `define INST_BGEU 3'b111 
+
+//isa test
+`define HALT_ADDR 32'h00200008

@@ -2,7 +2,8 @@
 
 module test_top(
     input wire rst_i,
-    input wire clk_i
+    input wire clk_i,
+    output reg halt_o   //for isa test
 );
 
 wire[`ADDR_WIDTH-1:0] pc_wire;
@@ -54,6 +55,9 @@ wire[`RDATA_WIDTH-1:0] exe_mem_reg_wdata_o;
 wire[`RADDR_WIDTH-1:0] mem_reg_waddr_o;
 wire mem_reg_we_o;
 wire[`RDATA_WIDTH-1:0] mem_reg_wdata_o;
+
+wire mem_halt_o;
+assign halt_o = mem_halt_o;
 
 //mem_wb
 wire[`RADDR_WIDTH-1:0] mem_wb_reg_waddr_o;
@@ -294,6 +298,7 @@ exe_mem exe_mem0(
 //mem
 mem mem0(
     .rst_i(rst_i),
+    .clk_i(clk_i),
 
     //from exe_mem
     .reg_waddr_i(exe_mem_reg_waddr_o),
@@ -314,7 +319,10 @@ mem mem0(
     .ram_addr_o(ram_addr),
     .ram_data_o(ram_wdata),
     .ram_w_request_o(ram_we),
-    .ram_data_i(ram_rdata)
+    .ram_data_i(ram_rdata),
+
+    //for test halt signal
+    .halt_o(mem_halt_o)
 );
 
 //mem_wb

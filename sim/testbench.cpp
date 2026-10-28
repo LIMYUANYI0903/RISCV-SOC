@@ -56,16 +56,29 @@ int main(int argc,char **argv)
         one_cycle(top, tfp);
     }
     top->rst_i = 0;    
-    
+
+    while(!Verilated::gotFinish()) {
+        one_cycle(top,tfp);
+        int x = top->halt_o;
+        if (x==1)
+            break;
+        //printf("halt=%d\n", x);
+    }
+
     for( int i=0; i<MAX_SIM_CYCLE;i++) {
         one_cycle(top, tfp);
     }
+    int a0 = sim_regs_read(top->test_top->regfile0, 10);
+    if (a0) { 
+        printf("FAIL %d\n",a0);
+    } else
+        printf("PASS\n");
 
-    for (int i=0; i<32;i++) {
-        int x = sim_regs_read(top->test_top->regfile0, i);        
-        printf(" x%02d = %08x ", i, x);
-        if (i%4==3) printf("\n");
-    }
+    // for (int i=0; i<32;i++) {
+    //     int x = sim_regs_read(top->test_top->regfile0, i);        
+    //     printf(" x%02d = %08x ", i, x);
+    //     if (i%4==3) printf("\n");
+    // }
     
      top->final();
      tfp->close();

@@ -229,12 +229,14 @@ module id(
 	always @(*) begin
 		if (reg1_re_o == `READ_ENABLE &&
             exe_reg_we_i == `WRITE_ENABLE &&
+            exe_reg_waddr_i != `ZERO_REG &&
             exe_reg_waddr_i == reg1_raddr_o)
             begin
 			    op1_o <= exe_reg_wdata_i;
 		    end 
         else if(reg1_re_o == `READ_ENABLE &&
                 mem_reg_we_i == `WRITE_ENABLE &&
+                mem_reg_waddr_i != `ZERO_REG &&
                 mem_reg_waddr_i == reg1_raddr_o)
             begin
 			    op1_o <= mem_reg_wdata_i;
@@ -248,12 +250,14 @@ module id(
 	always @(*) begin
 		if (reg2_re_o == `READ_ENABLE &&
             exe_reg_we_i == `WRITE_ENABLE &&
+            exe_reg_waddr_i != `ZERO_REG &&
             exe_reg_waddr_i == reg2_raddr_o)
             begin
 			    op2_o <= exe_reg_wdata_i;
 		    end 
         else if(reg2_re_o == `READ_ENABLE &&
                 mem_reg_we_i == `WRITE_ENABLE &&
+                mem_reg_waddr_i != `ZERO_REG &&
                 mem_reg_waddr_i == reg2_raddr_o)
             begin
 			    op2_o <= mem_reg_wdata_i;
